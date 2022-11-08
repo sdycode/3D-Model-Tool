@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:three_d_model_tool/3d_trials/3d_plane_in_space_trial1.dart';
+import 'package:three_d_model_tool/3D%20Plane%20in%20Space/3d_plane_in_space_trial1.dart';
+
 import 'package:three_d_model_tool/constants/consts.dart';
 
 void main() {

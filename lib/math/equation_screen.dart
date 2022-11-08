@@ -77,7 +77,7 @@ class _EquationScreenState extends State<EquationScreen> {
     interSectionPoint = getInterSectionPointForPlane(pe);
     log("interppoit values ${interSectionPoint} / ");
     lineAngles =
-        get_angles_of_vector_though_origin_wrt_3planes(interSectionPoint);
+        get_angles_of_vector_though_origin_wrt_3planes_YZ_XY_XZ(interSectionPoint);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

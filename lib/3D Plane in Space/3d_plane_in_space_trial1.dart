@@ -1,7 +1,12 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:three_d_model_tool/3d_trials/3D%20Plane%20in%20Space/enums_in.dart';
+import 'package:three_d_model_tool/2D%20Gerometry%20Functions/Polygon/get_polygon_points_from_radius_no_initialAngle.dart';
+import 'package:three_d_model_tool/2D%20Gerometry%20Functions/model/point.dart';
+import 'package:three_d_model_tool/3D%20Plane%20in%20Space/3D%20parts%20widgets/circleRing3DModelWidget.dart';
+import 'package:three_d_model_tool/3D%20Plane%20in%20Space/3D%20parts%20widgets/plane_from_origin_at_circumference.dart';
+import 'package:three_d_model_tool/3D%20Plane%20in%20Space/enums_in.dart';
+
 import 'package:three_d_model_tool/constants/consts.dart';
 import 'package:three_d_model_tool/extensions.dart';
 import 'package:three_d_model_tool/math/angle_conversion.dart';
@@ -11,7 +16,9 @@ import 'package:three_d_model_tool/math/equation_screen.dart';
 import 'package:three_d_model_tool/math/get_angle_between_2_planes.dart';
 import 'package:three_d_model_tool/math/get_angles_of_vector_though_origin_wrt_3planes.dart';
 import 'package:three_d_model_tool/math/get_line_perp_to_plane.dart';
+import 'package:three_d_model_tool/math/get_squre_root_value_of_any_vector.dart';
 import 'package:three_d_model_tool/math/model/plane_equation_model.dart';
+import 'package:three_d_model_tool/math/planeInterSectionPerpendilarDistanceForVector.dart';
 import 'dart:math' as m;
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:three_d_model_tool/math/get_angles_and_translated_value_for_trianlge_points.dart';
@@ -36,6 +43,9 @@ List<vm.Vector3> spacePointsList = [
     0,
   ),
 ];
+double polygonRadius = 200;
+int noOfPolygonSides = 4;
+double planeInterSectionPerpendilarDist = 10;
 
 class PlanePositionModel {
   List<double> rotAngles = [0, 0, 0];
@@ -76,6 +86,7 @@ class _ThreeD_plane_in_space_trial1State
   int selectedPlaneIndex = 3;
   int sliderIndex = 0;
   bool spaceTransform = true;
+  List<double> axisAngles = [0, 0, 0];
   List<double> spaceRotAngles = [-18, -22, 0];
   List<double> spaceTranslateValues = [w * 0.5, h * 0.5, 0];
   List<double> rotAngles = [0, 0, 0];
@@ -86,9 +97,18 @@ class _ThreeD_plane_in_space_trial1State
   vm.Vector3 lineAngles = vm.Vector3(0, 0, 0);
   @override
   Widget build(BuildContext context) {
-    lineAngles =
-        get_angles_of_vector_though_origin_wrt_3planes(spacePointsList[3]);
+    double planeInterSectionPerpendilarDist =
+        planeInterSectionPerpendilarDistanceForVector(spacePointsList[3]);
+    lineAngles = get_angles_of_vector_though_origin_wrt_3planes_YZ_XY_XZ(
+        spacePointsList[3]);
+    if (lineAngles.y.toString() == "NaN") {}
+    log("NaN : ${lineAngles.y.toString()}");
 
+    if (lineAngles.y.toString().trim() == "NaN" ||
+        lineAngles.z.toString().trim() == "NaN") {
+    } else {
+      axisAngles = [0, (-1) * (lineAngles.y), lineAngles.z * 1];
+    }
     updateSelectedPlane();
 
     return Scaffold(
@@ -113,27 +133,6 @@ class _ThreeD_plane_in_space_trial1State
                 ..translate(spaceTranslateValues[0], spaceTranslateValues[1],
                     spaceTranslateValues[2]),
               child: Stack(children: [
-                // Positioned(
-                //   child: Transform(
-                //     transform: Matrix4.rotationX(rotAngles[0].degToRad())
-                //       ..rotateY(rotAngles[1].degToRad())
-                //       ..rotateZ(rotAngles[2].degToRad())
-                //       ..translate(translateValues[0], translateValues[1],
-                //           translateValues[2]),
-                //     child: ClipRRect(
-                //       // borderRadius: BorderRadius.circular(60),
-                //       child: Container(
-                //         width: 200,
-                //         height: 200,
-                //         color: Colors.blue.shade200.withAlpha(150),
-                //         child: Stack(
-                //           fit: StackFit.loose,
-                //           children: [],
-                //         ),
-                //       ),
-                //     ),
-                //   ),
-                // ),
                 ...List.generate(planePositionModels.length, (i) {
                   return plane(i);
                 }),
@@ -141,8 +140,10 @@ class _ThreeD_plane_in_space_trial1State
                     child: Transform(
                   transform: Matrix4.rotationX(0)
                     ..translate(
-                        planePositionModels[3].translateValuesWRTSpace[0],
-                        planePositionModels[3].translateValuesWRTSpace[1],
+                        planePositionModels[3].translateValuesWRTSpace[0] +
+                            planeSize * 0.5,
+                        planePositionModels[3].translateValuesWRTSpace[1] +
+                            planeSize * 0.5,
                         planePositionModels[3].translateValuesWRTSpace[2]),
                   child: CircleAvatar(
                     backgroundColor: Colors.purple.shade600,
@@ -159,50 +160,129 @@ class _ThreeD_plane_in_space_trial1State
                                   ? Colors.red
                                   : Colors.white));
                 }),
+                // ...List.generate(spacePointsList.length, (i) {
+                //   return i < 4
+                //       ? Container()
+                //       : Positioned(
+                //           child: planeFromCentroidPoint(spacePointsList[i],
+                //               planeRectSize: Size(300, 100)));
+                // }),
+                CircleRing3DModelWidget(
+                  noOfPolygonSides: noOfPolygonSides,
+                  polygonRadius: polygonRadius,
+                )
+                // Positioned(child: axisLine(axisAngles)),
+                // Positioned(child: axisPerpPlane(axisAngles)),
+                // Positioned(
+                //     child: axisLine(lineAngles.vect3TodoubleList(),
+                //         color: Colors.green.shade300))
               ]),
             ),
           )),
+          Positioned(
+            left: 400,
+            top: 50,
+            child: Builder(builder: (c) {
+              double phi = m.asin(m.sin(lineAngles[2].degToRad()) /
+                  (m.sin(lineAngles[1].degToRad())));
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SelectableText("${90 - phi.radToDeg()}",
+                      style: const TextStyle(color: Colors.white)),
+                  SelectableText(
+                      " XZ [ Z axis ]${getAngleofVector_wrt_XZ_Plane(spacePointsList.first)}\n XY [ Y axis ]${getAngleofVector_wrt_XY_Plane(spacePointsList.first)}",
+                      style: const TextStyle(color: Colors.white))
+                ],
+              );
+            }),
+          ),
 
           // plane(0),
           // plane(1),
 
           xyzValuesChart(),
+          axisSliderBox(),
           Align(
               alignment: Alignment.bottomCenter,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                      "space tra ${translateValuesWRTSpace}\n ${planePositionModels[3].translateValuesWRTSpace}, ",
-                      style: const TextStyle(color: Colors.white)),
-                  Container(
-                    height: 60,
-                    width: 300,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(" Intersect point: ",
-                            style: TextStyle(color: Colors.white)),
-                        SelectableText(
-                            "${spacePointsList[3].x.roundTo3Places()}, ${spacePointsList[3].y.roundTo3Places()}, ${spacePointsList[3].z.roundTo3Places()},",
-                            style: const TextStyle(color: Colors.white)),
-                      ],
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                          "space tra ${translateValuesWRTSpace}\n ${planePositionModels[3].translateValuesWRTSpace}, ",
+                          style: const TextStyle(color: Colors.white)),
+                      Container(
+                        height: 60,
+                        width: 300,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(" Intersect point: ",
+                                style: TextStyle(color: Colors.white)),
+                            SelectableText(
+                                "${spacePointsList[3].x.roundTo3Places()}, ${spacePointsList[3].y.roundTo3Places()}, ${spacePointsList[3].z.roundTo3Places()},",
+                                style: const TextStyle(color: Colors.white)),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  Container(
-                    height: 60,
-                    width: 300,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text("lineAngles values: ",
-                            style: TextStyle(color: Colors.white)),
-                        SelectableText(
-                            "${lineAngles.x.roundTo3Places()}, ${lineAngles.y.roundTo3Places()}, ${lineAngles.z.roundTo3Places()},",
-                            style: const TextStyle(color: Colors.white)),
-                      ],
-                    ),
-                  ),
+                  Row(
+                    children: [
+                      Container(
+                        height: 60,
+                        width: 300,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  rotAngles = List.from([
+                                    lineAngles.x.roundTo3Places(),
+                                    lineAngles.y.roundTo3Places(),
+                                    lineAngles.z.roundTo3Places()
+                                  ]);
+                                });
+                              },
+                              child: const Text("lineAngles values: ",
+                                  style: TextStyle(color: Colors.white)),
+                            ),
+                            SelectableText(
+                                "${lineAngles.x.roundTo3Places()}, ${lineAngles.y.roundTo3Places()}, ${lineAngles.z.roundTo3Places()},",
+                                style: const TextStyle(color: Colors.white)),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        height: 60,
+                        width: 300,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  rotAngles = List.from([
+                                    90 - lineAngles.x.roundTo3Places(),
+                                    90 - lineAngles.y.roundTo3Places(),
+                                    90 - lineAngles.z.roundTo3Places()
+                                  ]);
+                                });
+                              },
+                              child: const Text("lineAngles values: ",
+                                  style: TextStyle(color: Colors.white)),
+                            ),
+                            SelectableText(
+                                "${90 - lineAngles.x.roundTo3Places()}, ${90 - lineAngles.y.roundTo3Places()}, ${90 - lineAngles.z.roundTo3Places()},",
+                                style: const TextStyle(color: Colors.white)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
                 ],
               )),
           // spaceTransform
@@ -308,32 +388,45 @@ class _ThreeD_plane_in_space_trial1State
                   // if (enitiyForSlider == EnitiyForSlider.point)
                   // if (enitiyForSlider == EnitiyForSlider.point)
                   if (enitiyForSlider == EnitiyForSlider.point)
-                    Container(
-                      width: 300,
-                      height: 40,
-                      child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: spacePointsList.length,
-                          itemBuilder: (c, i) {
-                            return InkWell(
-                              onTap: () {
-                                setState(() {
-                                  selecteSpacePointIndex = i;
-                                });
-                              },
-                              child: CircleAvatar(
-                                backgroundColor: i == 3
-                                    ? Colors.blue
-                                    : selecteSpacePointIndex == i
-                                        ? Colors.red.shade100.withAlpha(160)
-                                        : Colors.white,
-                                radius: 20,
-                                child: Center(
-                                  child: Text(i.toString()),
-                                ),
-                              ),
-                            );
-                          }),
+                    Row(
+                      children: [
+                        IconButton(
+                            onPressed: () {
+                              spacePointsList.add(vm.Vector3(200, 200, 200));
+                              setState(() {});
+                            },
+                            icon: Icon(
+                              Icons.add_box,
+                              color: Colors.amber,
+                            )),
+                        Container(
+                          width: 250,
+                          height: 40,
+                          child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: spacePointsList.length,
+                              itemBuilder: (c, i) {
+                                return InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      selecteSpacePointIndex = i;
+                                    });
+                                  },
+                                  child: CircleAvatar(
+                                    backgroundColor: i == 3
+                                        ? Colors.blue
+                                        : selecteSpacePointIndex == i
+                                            ? Colors.red.shade100.withAlpha(160)
+                                            : Colors.white,
+                                    radius: 20,
+                                    child: Center(
+                                      child: Text(i.toString()),
+                                    ),
+                                  ),
+                                );
+                              }),
+                        ),
+                      ],
                     ),
                   if (enitiyForSlider == EnitiyForSlider.object)
                     Container(
@@ -571,6 +664,9 @@ class _ThreeD_plane_in_space_trial1State
               planePositionModels[planeNo].translateValuesWRTSpace[1],
               planePositionModels[planeNo].translateValuesWRTSpace[2]),
         child: Transform(
+          origin: planeNo < 3
+              ? Offset.zero
+              : Offset(planeSize * 0.5, planeSize * 0.5),
           transform: Matrix4.rotationX(
               planePositionModels[planeNo].rotAngles[0].degToRad())
             ..rotateY(planePositionModels[planeNo].rotAngles[1].degToRad())
@@ -996,6 +1092,219 @@ class _ThreeD_plane_in_space_trial1State
           ];
   }
 
+  axisSliderBox() {
+    Offset position = Offset.zero;
+    return StatefulBuilder(
+        builder: (BuildContext context, void Function(void Function()) state) {
+      return Positioned(
+        top: position.dy,
+        left: position.dx,
+        // alignment: Alignment.topLeft,
+        //  Alignment(w - 300 - 300, h - 300),
+        child: GestureDetector(
+            onPanUpdate: (d) {
+              position =
+                  Offset(position.dx + d.delta.dx, position.dy + d.delta.dy);
+              // log("axisSliderBox ${position}");
+              state(() {});
+            },
+            child: Container(
+                width: 300,
+                // height: 350,
+                color: Colors.blue.shade200,
+                child: Column(children: [
+                  // Expanded(
+                  //     child: Container(
+                  //   height: double.infinity,
+                  //   width: 300,
+                  //   color: Color.fromARGB(255, 9, 49, 82),
+                  // )),
+                  ExpansionTile(
+                    title: Text(""),
+                    children: [
+                      getAxisSlider(0),
+                      getAxisSlider(1),
+                      getAxisSlider(2),
+                    ],
+                  ),
+
+                  ExpansionTile(
+                    title: Text(""),
+                    children: [
+                      Row(
+                        children: [
+                          IconButton(
+                              iconSize: 30,
+                              padding: EdgeInsets.zero,
+                              onPressed: () {
+                                setState(() {
+                                  xtrans = 0;
+                                });
+                              },
+                              icon: Text("x [${xtrans}]")),
+                          IconButton(
+                              iconSize: 30,
+                              padding: EdgeInsets.zero,
+                              onPressed: () {
+                                setState(() {
+                                  ztrans = 0;
+                                });
+                              },
+                              icon: Text("z [${ztrans}]")),
+                          IconButton(
+                              iconSize: 30,
+                              padding: EdgeInsets.zero,
+                              onPressed: () {
+                                setState(() {
+                                  ytrans = 0;
+                                });
+                              },
+                              icon: Text("y [${ytrans}]")),
+                        ],
+                      ),
+                      SliderTheme(
+                        data: SliderThemeData(
+                            trackHeight: 2,
+                            thumbShape:
+                                RoundSliderThumbShape(enabledThumbRadius: 4)),
+                        child: Slider(
+                            min: -500,
+                            max: 500,
+                            divisions: 1000,
+                            value: xtrans,
+                            onChanged: (double v) {
+                              setState(() {
+                                xtrans = v;
+                              });
+                            }),
+                      ),
+                      SliderTheme(
+                        data: SliderThemeData(
+                            trackHeight: 2,
+                            thumbShape:
+                                RoundSliderThumbShape(enabledThumbRadius: 4)),
+                        child: Slider(
+                            min: -500,
+                            max: 500,
+                            divisions: 1000,
+                            value: ztrans,
+                            onChanged: (double v) {
+                              setState(() {
+                                ztrans = v;
+                              });
+                            }),
+                      ),
+                      SliderTheme(
+                        data: SliderThemeData(
+                            trackHeight: 2,
+                            thumbShape:
+                                RoundSliderThumbShape(enabledThumbRadius: 4)),
+                        child: Slider(
+                            min: -500,
+                            max: 500,
+                            divisions: 1000,
+                            value: ytrans,
+                            onChanged: (double v) {
+                              setState(() {
+                                ytrans = v;
+                              });
+                            }),
+                      )
+                    ],
+                  ),
+
+                  ExpansionTile(title: Text(""), children: [
+                    Row(
+                      children: [
+                        IconButton(
+                            iconSize: 30,
+                            padding: EdgeInsets.zero,
+                            onPressed: () {},
+                            icon: Text("Radius [${polygonRadius}]")),
+                        SliderTheme(
+                          data: SliderThemeData(
+                              trackHeight: 2,
+                              thumbShape:
+                                  RoundSliderThumbShape(enabledThumbRadius: 4)),
+                          child: Slider(
+                              min: 1,
+                              max: 1000,
+                              divisions: 999,
+                              value: polygonRadius,
+                              onChanged: (double v) {
+                                setState(() {
+                                  polygonRadius = v;
+                                });
+                              }),
+                        )
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                            iconSize: 30,
+                            padding: EdgeInsets.zero,
+                            onPressed: () {},
+                            icon: Text("Polygon [${noOfPolygonSides}]")),
+                        SliderTheme(
+                          data: SliderThemeData(
+                              trackHeight: 2,
+                              thumbShape:
+                                  RoundSliderThumbShape(enabledThumbRadius: 4)),
+                          child: Slider(
+                              min: 4,
+                              max: 100,
+                              divisions: 97,
+                              value: noOfPolygonSides.toDouble(),
+                              onChanged: (double v) {
+                                setState(() {
+                                  noOfPolygonSides = v.toInt();
+                                });
+                              }),
+                        )
+                      ],
+                    ),
+                  ])
+                ]))),
+      );
+    });
+  }
+
+  getAxisSlider(int i) {
+    return Container(
+      width: 300,
+      height: 40,
+      child: Row(
+        children: [
+          iconWithTextList[i],
+          Expanded(
+              child: SliderTheme(
+            data: SliderThemeData(
+                trackHeight: 2,
+                thumbShape: RoundSliderThumbShape(enabledThumbRadius: 4)),
+            child: Slider(
+                min: -180,
+                max: 180,
+                divisions: 360,
+                value: axisAngles[i],
+                onChanged: (double v) {
+                  setState(() {
+                    axisAngles[i] = v;
+                  });
+                }),
+          )),
+          IconButton(
+              onPressed: () {
+                axisAngles[i] = 0;
+                setState(() {});
+              },
+              padding: EdgeInsets.zero,
+              icon: Text(axisAngles[i].toStringAsFixed(1)))
+        ],
+      ),
+    );
+  }
+
   singleSliderBox() {
     bool isObject = enitiyForSlider == EnitiyForSlider.object;
     return Container(
@@ -1150,7 +1459,16 @@ class _ThreeD_plane_in_space_trial1State
       width: 300,
       height: 40,
       child: Row(
-        children: [iconWithTextList[i], Expanded(child: getSelectedSlider(i))],
+        children: [
+          iconWithTextList[i],
+          Expanded(child: getSelectedSlider(i)),
+          IconButton(
+              onPressed: () {
+                setSliderValueToZero(i);
+              },
+              padding: EdgeInsets.zero,
+              icon: Icon(Icons.exposure_zero))
+        ],
       ),
     );
   }
@@ -1263,7 +1581,7 @@ class _ThreeD_plane_in_space_trial1State
       );
     }
     if (j > 8 && j < 12 && enitiyForSlider == EnitiyForSlider.object) {
-      log("slider object rot $j");
+      // log("slider object rot $j");
       int i = j % 3;
       return SliderTheme(
         data: SliderThemeData(
@@ -1366,9 +1684,211 @@ class _ThreeD_plane_in_space_trial1State
     }
   }
 
+  void setSliderValueToZero(int j) {
+    if (j <= 2 && enitiyForSlider == EnitiyForSlider.space) {
+      int i = j;
+      spaceTranslateValues[i] = 0;
+    }
+    if (j > 2 && j < 6 && enitiyForSlider == EnitiyForSlider.space) {
+      int i = j % 3;
+      spaceRotAngles[i] = 0;
+    }
+    if (j <= 2 && enitiyForSlider == EnitiyForSlider.object) {
+      int i = j;
+      translateValues[i] = 0;
+    }
+    if (j > 2 && j < 6 && enitiyForSlider == EnitiyForSlider.object) {
+      int i = j % 3;
+      rotAngles[i] = 0;
+    }
+
+    if (j > 5 && j < 9 && enitiyForSlider == EnitiyForSlider.object) {
+      int i = j % 3;
+      translateValuesWRTSpace[i] = 0;
+    }
+    if (j > 8 && j < 12 && enitiyForSlider == EnitiyForSlider.object) {
+      // log("slider object rot $j");
+      int i = j % 3;
+      rotAnglesWRTSpace[i] = 0;
+    }
+    if (j <= 2 && enitiyForSlider == EnitiyForSlider.point) {
+      int i = j;
+      double v = 0;
+      switch (i) {
+        case 0:
+          spacePointsList[selecteSpacePointIndex].x = v;
+          break;
+        case 1:
+          spacePointsList[selecteSpacePointIndex].y = v;
+          break;
+        case 2:
+          spacePointsList[selecteSpacePointIndex].z = v;
+          break;
+        default:
+      }
+      spacePointsList[3] = getInterSectionPointForPlane(
+          getPlaneEquationFrom3Points(spacePointsList)!);
+    }
+
+    setState(() {});
+  }
+
   // getSelectedSlider(int i) {}
 
   // iconWithText(int i) {}
+
+}
+
+double ztrans = 0;
+double xtrans = 0;
+double ytrans = 0;
+planeFromCentroidPoint(
+  vm.Vector3 vector3, {
+  Size planeRectSize = const Size(100, 100),
+  Color color = Colors.white,
+  int alpha = 244,
+  double distFromOriginToPlane = 200,
+}) {
+  vm.Vector3 lineAngles = vm.Vector3(0, 0, 0);
+  lineAngles = get_angles_of_vector_though_origin_wrt_3planes_YZ_XY_XZ(vector3);
+
+  List<double> axisAngles = [0, 0, 0];
+
+  if (lineAngles.y.toString().trim() == "NaN" ||
+      lineAngles.z.toString().trim() == "NaN" ||
+      lineAngles.x.toString().trim() == "NaN") {
+    lineAngles = vm.Vector3(0, 0, 0);
+  } else {
+    if (vector3.x < 0) {
+      axisAngles = [0, (-1) * (lineAngles.y), lineAngles.z * (1)];
+    } else {
+      axisAngles = [0, (-1) * (lineAngles.y), lineAngles.z * 1];
+    }
+  }
+  log("${vector3.x} lineangle ${lineAngles}\naxisAngles ${axisAngles}");
+  // double z = get_squre_root_value_of_any_vector(vector3);
+  double z = polygonRadius;
+  // axisAngles = [0,0,0];
+  double planeW = planeRectSize.width;
+  double planeH = planeRectSize.height;
+  return Transform(
+    transform: Matrix4.rotationY(vector3.x < 0 ? m.pi : 0),
+    child: Transform(
+      transform: Matrix4.translationValues(0, 0, 0),
+      child: Transform(
+        transform: Matrix4.rotationX(axisAngles[0].degToRad())
+          ..rotateY(axisAngles[1].degToRad())
+          ..rotateZ(axisAngles[2].degToRad()),
+        child: Transform(
+          origin:
+              // Offset.zero,
+              Offset(planeW * 0.5, planeH * 0.5),
+          transform: Matrix4.translationValues(
+              z
+              //  xtrans-planeW*0.5
+              ,
+              ytrans - planeH * 0.5,
+              ztrans + planeW * 0.5),
+          child: Transform(
+            transform: Matrix4.rotationX(axisAngles[0].degToRad() * 0)
+              ..rotateY(axisAngles[1].degToRad() * 0 + 90.0.degToRad())
+              ..rotateZ(axisAngles[2].degToRad() * 0),
+            child: Container(
+              width: planeW,
+              height: planeH,
+              color: (color).withAlpha(alpha),
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: planeW * 0.5 - 5,
+                    top: planeH * 0.5 - 10,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      color: Colors.blue,
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+axisPerpPlane(List<double> lineAngles, {double? length, Color? color}) {
+  double planeW = 200;
+  double planeH = 100;
+  return Transform(
+    transform: Matrix4.translationValues(0, -planeH * 0.5, 0),
+    child: Transform(
+      transform:
+
+          // Matrix4.identity(),
+          Matrix4.rotationX(lineAngles[0].degToRad())
+            ..rotateY(lineAngles[1].degToRad())
+            ..rotateZ(lineAngles[2].degToRad()),
+      // Matrix4.rotationX(90 - lineAngles[0].degToRad())
+      //   ..rotateY(90 - lineAngles[1].degToRad())
+      //   ..rotateZ(90 - lineAngles[2].degToRad()),
+      child: Transform(
+        origin:
+            //  Offset.zero,
+            Offset(
+                planeW * 0.5,
+                // planeInterSectionPerpendilarDist*0.5,
+                // (length ?? 600) * 0.5,
+                planeH * 0.5),
+        transform: Matrix4.rotationX(
+            lineAngles[0].degToRad() * 0 + 0 * 90.0.degToRad())
+          ..rotateY(90.0.degToRad())
+          ..rotateZ(lineAngles[2].degToRad() * 0),
+        child: Container(
+          width: planeW,
+          height: planeH,
+          color: (color ?? Colors.white).withAlpha(120),
+          child: Stack(
+            children: [
+              Positioned(
+                left: planeW * 0.5 - 5,
+                top: planeH * 0.5 - 10,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  color: Colors.red,
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+axisLine(List<double> lineAngles, {double? length, Color? color}) {
+  log("axisLine ${lineAngles}");
+  return Transform(
+    transform:
+
+        // Matrix4.identity(),
+        Matrix4.rotationX(lineAngles[0].degToRad())
+          ..rotateY(lineAngles[1].degToRad())
+          ..rotateZ(lineAngles[2].degToRad()),
+    // Matrix4.rotationX(90 - lineAngles[0].degToRad())
+    //   ..rotateY(90 - lineAngles[1].degToRad())
+    //   ..rotateZ(90 - lineAngles[2].degToRad()),
+    child: Container(
+      width:
+
+          // planeInterSectionPerpendilarDist,
+          length ?? 600,
+      height: 2,
+      color: color ?? Colors.white,
+    ),
+  );
 }
 
 spacePoint(vm.Vector3 ve, [Color? color]) {
