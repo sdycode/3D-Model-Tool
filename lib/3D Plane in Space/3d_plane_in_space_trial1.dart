@@ -5,6 +5,7 @@ import 'package:three_d_model_tool/2D%20Gerometry%20Functions/Polygon/get_polygo
 import 'package:three_d_model_tool/2D%20Gerometry%20Functions/model/point.dart';
 import 'package:three_d_model_tool/3D%20Plane%20in%20Space/3D%20parts%20widgets/circleRing3DModelWidget.dart';
 import 'package:three_d_model_tool/3D%20Plane%20in%20Space/3D%20parts%20widgets/plane_from_origin_at_circumference.dart';
+import 'package:three_d_model_tool/3D%20Plane%20in%20Space/3D%20parts%20widgets/sphere_using_circular_rings_rotated_wrt_xz_plane.dart';
 import 'package:three_d_model_tool/3D%20Plane%20in%20Space/enums_in.dart';
 
 import 'package:three_d_model_tool/constants/consts.dart';
@@ -44,6 +45,8 @@ List<vm.Vector3> spacePointsList = [
   ),
 ];
 double polygonRadius = 200;
+double ringThickness = 100;
+int noOfRingsAboveXZPlane = 1;
 int noOfPolygonSides = 4;
 double planeInterSectionPerpendilarDist = 10;
 
@@ -95,6 +98,7 @@ class _ThreeD_plane_in_space_trial1State
   List<double> rotAnglesWRTSpace = [0, 0, 0];
   List<String> rotAnglesAxesNames = ["X", "Y", "Z"];
   vm.Vector3 lineAngles = vm.Vector3(0, 0, 0);
+  double mainScale = 1;
   @override
   Widget build(BuildContext context) {
     double planeInterSectionPerpendilarDist =
@@ -123,7 +127,8 @@ class _ThreeD_plane_in_space_trial1State
           Positioned(
               child: Transform(
             origin: Offset(w * 0.5, h * 0.5),
-            transform: Matrix4.identity(),
+            transform: Matrix4.identity()
+              ..scale(mainScale, mainScale, mainScale),
             //  Matrix4.rotationZ(1*180.0.degToRad())..rotateY(1*180.0.degToRad())..rotateX(1*360.0.degToRad()),
             child: Transform(
               origin: Offset(w * 0.5, h * 0.5),
@@ -167,10 +172,27 @@ class _ThreeD_plane_in_space_trial1State
                 //           child: planeFromCentroidPoint(spacePointsList[i],
                 //               planeRectSize: Size(300, 100)));
                 // }),
-                CircleRing3DModelWidget(
-                  noOfPolygonSides: noOfPolygonSides,
-                  polygonRadius: polygonRadius,
-                )
+                // SphereUsingcircularRingsRotatedwrtXZPlane(  noOfPolygonSides: noOfPolygonSides,
+                //   polygonRadius: polygonRadius,),
+                // CircleRing3DModelWidgetAtAnglewrtXZPlane(
+                //   noOfPolygonSides: noOfPolygonSides,
+                //   polygonRadius: polygonRadius,
+                //   xzAngle: 45,
+                // ),
+                CircleRing3DModelWidgetAtAnglewrtXZPlane(
+                    noOfPolygonSides: noOfPolygonSides,
+                    polygonRadius: polygonRadius,
+                    ringThickness: ringThickness
+
+                    //  polygonRadius / (1 + m.sqrt(2)),
+                    ),
+
+                // CircleRing3DModelWidget(
+                //   noOfPolygonSides: noOfPolygonSides,
+                //   polygonRadius: polygonRadius,
+                //   ringThickness: polygonRadius / (1 + m.sqrt(2)),
+                //   // color: Colors.amber,
+                // )
                 // Positioned(child: axisLine(axisAngles)),
                 // Positioned(child: axisPerpPlane(axisAngles)),
                 // Positioned(
@@ -1092,8 +1114,8 @@ class _ThreeD_plane_in_space_trial1State
           ];
   }
 
+  Offset position = Offset.zero;
   axisSliderBox() {
-    Offset position = Offset.zero;
     return StatefulBuilder(
         builder: (BuildContext context, void Function(void Function()) state) {
       return Positioned(
@@ -1217,7 +1239,39 @@ class _ThreeD_plane_in_space_trial1State
                     Row(
                       children: [
                         IconButton(
-                            iconSize: 30,
+                            iconSize: 50,
+                            padding: EdgeInsets.zero,
+                            onPressed: () {},
+                            icon: Text("Rings [${noOfRingsAboveXZPlane}]")),
+                        SliderTheme(
+                          data: SliderThemeData(
+                              trackHeight: 2,
+                              thumbShape:
+                                  RoundSliderThumbShape(enabledThumbRadius: 4)),
+                          child: Slider(
+                              min: 1,
+                              max: 100,
+                              divisions: 100,
+                              value: noOfRingsAboveXZPlane.toDouble(),
+                              onChanged: (double v) {
+                                setState(() {
+                                  if (v.toInt() > 0) {
+                                    noOfRingsAboveXZPlane = v.toInt();
+                                    double angle = (m.pi * 0.5) /
+                                        (noOfRingsAboveXZPlane + 1);
+                                   
+                                    ringThickness =
+                                        2 * polygonRadius * m.tan(angle*0.5); log("stepAngle anglee ${(angle*0.5).radToDeg()} / ring ${ringThickness}");
+                                  }
+                                });
+                              }),
+                        )
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                            iconSize: 50,
                             padding: EdgeInsets.zero,
                             onPressed: () {},
                             icon: Text("Radius [${polygonRadius}]")),
@@ -1234,6 +1288,14 @@ class _ThreeD_plane_in_space_trial1State
                               onChanged: (double v) {
                                 setState(() {
                                   polygonRadius = v;
+
+                                    // noOfRingsAboveXZPlane = v.toInt();
+                                    double angle = (m.pi * 0.5) /
+                                        (noOfRingsAboveXZPlane + 1);
+                                   
+                                    ringThickness =
+                                        2 * polygonRadius * m.tan(angle*0.5); log("stepAngle anglee ${(angle*0.5).radToDeg()} / ring ${ringThickness}");
+                               
                                 });
                               }),
                         )
@@ -1242,7 +1304,7 @@ class _ThreeD_plane_in_space_trial1State
                     Row(
                       children: [
                         IconButton(
-                            iconSize: 30,
+                            iconSize: 50,
                             padding: EdgeInsets.zero,
                             onPressed: () {},
                             icon: Text("Polygon [${noOfPolygonSides}]")),
@@ -1258,7 +1320,38 @@ class _ThreeD_plane_in_space_trial1State
                               value: noOfPolygonSides.toDouble(),
                               onChanged: (double v) {
                                 setState(() {
-                                  noOfPolygonSides = v.toInt();
+                                  if (v.toInt() % 2 == 0) {
+                                    noOfPolygonSides = v.toInt();
+                                  }
+                                });
+                              }),
+                        )
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                            iconSize: 50,
+                            padding: EdgeInsets.zero,
+                            onPressed: () {
+                              setState(() {
+                                mainScale = 1;
+                              });
+                            },
+                            icon: Text("Scale [${mainScale}]")),
+                        SliderTheme(
+                          data: SliderThemeData(
+                              trackHeight: 2,
+                              thumbShape:
+                                  RoundSliderThumbShape(enabledThumbRadius: 4)),
+                          child: Slider(
+                              min: 0.1,
+                              max: 10,
+                              divisions: 100,
+                              value: mainScale,
+                              onChanged: (double v) {
+                                setState(() {
+                                  mainScale = v;
                                 });
                               }),
                         )
