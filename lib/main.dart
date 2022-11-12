@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:three_d_model_tool/2D%20Geometris/polycurve.dart';
 import 'package:three_d_model_tool/3D%20Plane%20in%20Space/3d_plane_in_space_trial1.dart';
 
 import 'package:three_d_model_tool/constants/consts.dart';
+import 'package:three_d_model_tool/demo/nthdegreepolycurve.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,7 +34,9 @@ class MyApp extends StatelessWidget {
           h = MediaQuery.of(context).size.height;
           return
               // EquationScreen();
-              ThreeD_plane_in_space_trial1();
+              NthDegreePolyCurvePage();
+          // PolyCurvePage();
+          ThreeD_plane_in_space_trial1();
         })
         // ThreeD_plane_in_space_trial1(),
         // CustomPathExtrudeBoxPage(),
