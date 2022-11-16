@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:three_d_model_tool/2D%20Geometris/bezier_curve.dart';
 import 'package:three_d_model_tool/2D%20Geometris/curve1.dart';
 import 'package:three_d_model_tool/constants/consts.dart';
 import 'package:three_d_model_tool/extensions.dart';
@@ -9,6 +10,7 @@ class PolyCurvePage extends StatefulWidget {
   @override
   State<PolyCurvePage> createState() => _PolyCurvePageState();
 }
+
 
 class _PolyCurvePageState extends State<PolyCurvePage>
     with TickerProviderStateMixin {
@@ -21,9 +23,9 @@ class _PolyCurvePageState extends State<PolyCurvePage>
     controller = AnimationController(
         vsync: this, duration: Duration(milliseconds: 2000));
     controller.addListener(() {
-      if(mounted){setState(() {
-        
-      });}
+      if (mounted) {
+        setState(() {});
+      }
     });
     // animation = CurvedAnimation(
     //   parent: controller,
@@ -39,6 +41,7 @@ class _PolyCurvePageState extends State<PolyCurvePage>
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Container(
@@ -46,8 +49,6 @@ class _PolyCurvePageState extends State<PolyCurvePage>
         height: h,
         child: Stack(
           children: [
-    
-
             Container(
               height: h * 0.8,
               width: w,
@@ -55,10 +56,7 @@ class _PolyCurvePageState extends State<PolyCurvePage>
                   scrollDirection: Axis.horizontal,
                   itemCount: 10,
                   itemBuilder: (c, i) {
-                    return 
-                   
-                    NthDegreeCurveAnimationBox(
-                     
+                    return NthDegreeCurveAnimationBox(
                       degree: i,
                       controller: controller,
                     );
@@ -110,14 +108,14 @@ class NthDegreeCurveAnimationBox extends StatefulWidget {
 
 class _NthDegreeCurveAnimationBoxState extends State<NthDegreeCurveAnimationBox>
     with SingleTickerProviderStateMixin {
-   Animation<double>? animation;
+  Animation<double>? animation;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     animation = CurvedAnimation(
       parent: widget.controller,
-      curve: CurveOf_n_Degree(widget.degree ),
+      curve: CurveOf_n_Degree(widget.degree),
       reverseCurve: Curves.easeOut,
     );
     animation?.addListener(() {
@@ -133,33 +131,37 @@ class _NthDegreeCurveAnimationBoxState extends State<NthDegreeCurveAnimationBox>
       width: w * 0.05,
       height: h * 0.7,
       color: Colors.primaries[widget.degree].shade100,
-      child:
-      Column(
+      child: Column(
         children: [
-          Text(widget.degree.toString(), style: TextStyle(fontSize: 20),),
-          Expanded(child: Container(
-              width: w * 0.05,
-      height: h * 0.6,
-     child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Positioned(
-            
-                  top: ((animation != null)?(animation?.value):0.5)!*h*0.5,
-                  child: Container(
-                     width: w * 0.05,
-                    child: Center(
-                      child: CircleAvatar(
-                        backgroundColor: Colors
-                            .primaries[widget.degree % Colors.primaries.length],
-                        radius: 20,
-                      ),
-                    ),
-                  ))
-            ],
-          )
-          ))
-          
+          Text(
+            widget.degree.toString(),
+            style: TextStyle(fontSize: 20),
+          ),
+          Expanded(
+              child: Container(
+                  width: w * 0.05,
+                  height: h * 0.6,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Positioned(
+                          top: ((animation != null)
+                                  ? (animation?.value)
+                                  : 0.5)! *
+                              h *
+                              0.5,
+                          child: Container(
+                            width: w * 0.05,
+                            child: Center(
+                              child: CircleAvatar(
+                                backgroundColor: Colors.primaries[
+                                    widget.degree % Colors.primaries.length],
+                                radius: 20,
+                              ),
+                            ),
+                          ))
+                    ],
+                  )))
         ],
       ),
     );

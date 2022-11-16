@@ -1,11 +1,26 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:three_d_model_tool/2D%20Geometris/bezier_curve.dart';
+import 'package:three_d_model_tool/2D%20Geometris/conic_curve.dart';
 import 'package:three_d_model_tool/2D%20Geometris/polycurve.dart';
 import 'package:three_d_model_tool/3D%20Plane%20in%20Space/3d_plane_in_space_trial1.dart';
 
 import 'package:three_d_model_tool/constants/consts.dart';
 import 'package:three_d_model_tool/demo/nthdegreepolycurve.dart';
+import 'package:three_d_model_tool/others/kbc_option_box.dart';
+import 'package:three_d_model_tool/others/kbc_option_demo.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isAndroid) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
+
   runApp(const MyApp());
 }
 
@@ -34,7 +49,11 @@ class MyApp extends StatelessWidget {
           h = MediaQuery.of(context).size.height;
           return
               // EquationScreen();
-              NthDegreePolyCurvePage();
+              KBC_option_demo_page();
+          KBCOptionPage();
+          ConicCurvePage();
+          BezeirCurvePage();
+          NthDegreePolyCurvePage();
           // PolyCurvePage();
           ThreeD_plane_in_space_trial1();
         })
