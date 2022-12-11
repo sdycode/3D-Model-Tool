@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:three_d_model_tool/2D%20Geometris/bezier_curve.dart';
+import 'package:three_d_model_tool/2D%20Gerometry%20Functions/curves/get_arc_model.dart';
+import 'package:three_d_model_tool/2D%20Gerometry%20Functions/model/arc_model.dart';
 import 'package:three_d_model_tool/constants/consts.dart';
 import 'package:three_d_model_tool/constants/get_index_for_list.dart';
 import 'package:three_d_model_tool/extensions.dart';
@@ -21,6 +23,8 @@ class ConicCurvePage extends StatefulWidget {
   State<ConicCurvePage> createState() => _ConicCurvePageState();
 }
 
+double _a1 = 0;
+double _a2 = 0;
 double _arcradius = 50;
 List<Offset> _points = [
   ...List.generate(20, (i) {
@@ -28,20 +32,19 @@ List<Offset> _points = [
   })
 ];
 Offset bisectorPoint = Offset(200, 200);
-
+  double smallerLengthFactor = 0.5;
 class _ConicCurvePageState extends State<ConicCurvePage> {
   double angleFactorFrom_a1 = 0.5;
   double smallerLength = 1;
-  double smallerLengthFactor = 0.1;
+
   double maxLength = 100;
-      double a1 = 0;
-    double a2 = 0;
+
   @override
   Widget build(BuildContext context) {
     double a = getAngleBetween2LinesFromGiven3PointsInRadian(
         [..._points.sublist(0, 3)]);
 
-    // d.log("angle betwn ${a.radToDeg()}");
+    // //  d.log("angle betwn ${a.radToDeg()}");
     LineEquation_2D l1 = get2DLineEquationFrom2Points(_points[0], _points[1]);
     LineEquation_2D l2 = get2DLineEquationFrom2Points(_points[1], _points[2]);
     LineEquation_2D l3 =
@@ -51,16 +54,16 @@ class _ConicCurvePageState extends State<ConicCurvePage> {
         (_points[0].dy - _points[1].dy) / (_points[0].dx - _points[1].dx);
     double m2 =
         (_points[2].dy - _points[1].dy) / (_points[2].dx - _points[1].dx);
-     a1 = atan(m1).radToDeg();
-     a2 = atan(m2).radToDeg();
-    d.log("angdiff befo  a1/a2 / $a1 /$a2");
-    if (a1 < 0) {
+    _a1 = atan(m1).radToDeg();
+    _a2 = atan(m2).radToDeg();
+    //  d.log("angdiff befo  _a1/_a2 / $_a1 /$_a2");
+    if (_a1 < 0) {
       if (_points[0].dx > _points[1].dx) {
         // 1st quadrant  i.e above screen
-        a1 = 360 + a1;
+        _a1 = 360 + _a1;
       } else {
         // 3rd quadrant i.e left side of screen
-        a1 = 180 + a1;
+        _a1 = 180 + _a1;
       }
     } else {
       if (_points[0].dx > _points[1].dx) {
@@ -68,16 +71,16 @@ class _ConicCurvePageState extends State<ConicCurvePage> {
 
       } else {
         // 2ndrd quadrant
-        a1 = 180 + a1;
+        _a1 = 180 + _a1;
       }
     }
-    if (a2 < 0) {
+    if (_a2 < 0) {
       if (_points[2].dx > _points[1].dx) {
         // 1st quadrant  i.e above screen
-        a2 = 360 + a2;
+        _a2 = 360 + _a2;
       } else {
         // 3rd quadrant i.e left side of screen
-        a2 = 180 + a2;
+        _a2 = 180 + _a2;
       }
     } else {
       if (_points[2].dx > _points[1].dx) {
@@ -85,23 +88,24 @@ class _ConicCurvePageState extends State<ConicCurvePage> {
 
       } else {
         // 2ndrd quadrant
-        a2 = 180 + a2;
+        _a2 = 180 + _a2;
       }
     }
     double angDiff = 0;
-    double diff = (a1 - a2).abs();
+    double diff = (_a1 - _a2).abs();
     if (diff > 180) {
       diff = 360 - diff;
-      if (a2 > a1) {
-        angDiff = a2 + diff * angleFactorFrom_a1;
-      } else {
-        angDiff = a1 + diff * angleFactorFrom_a1;
+      if (_a2 > _a1) {
+        angDiff = _a2 + diff * angleFactorFrom_a1;
+        isClockwise = true;
+      } else { isClockwise = false;
+        angDiff = _a1 + diff * angleFactorFrom_a1;
       }
     } else {
-      if (a2 > a1) {
-        angDiff = a1 + diff * angleFactorFrom_a1;
-      } else {
-        angDiff = a2 + diff * angleFactorFrom_a1;
+      if (_a2 > _a1) { isClockwise = false;
+        angDiff = _a1 + diff * angleFactorFrom_a1;
+      } else {isClockwise = true;
+        angDiff = _a2 + diff * angleFactorFrom_a1;
       }
     }
     maxLength = get_max_radius_for_arc_between_3_points(_points.sublist(0, 3));
@@ -109,9 +113,9 @@ class _ConicCurvePageState extends State<ConicCurvePage> {
     double dist2 = get_dist_between_2_points(points[2], points[1]);
 
     double rad = maxLength / (cos((diff * 0.5).degToRad()));
-    d.log("maxx $maxLength / $rad");
-    d.log("angdiff a1/a2 / $a1 /$a2");
-    d.log("angdiff $angDiff / $diff");
+    //  d.log("maxx $maxLength / $rad");
+    //  d.log("angdiff _a1/_a2 / $_a1 /$_a2");_PointCurvetypeWidget 
+    //  d.log("angdiff $angDiff / $diff");
 
     _points[4] = get_point_from_origin_at_angle_with_radius(
         _points[1],
@@ -121,12 +125,12 @@ class _ConicCurvePageState extends State<ConicCurvePage> {
     Offset Offset1 = get_point_from_origin_at_angle_with_radius(
         _points[1],
         //  360-     angleFactorFrom_a1*(360)
-        360 - a1,
+        360 - _a1,
         maxLength);
     Offset Offset2 = get_point_from_origin_at_angle_with_radius(
         _points[1],
         //  360-     angleFactorFrom_a1*(360)
-        360 - a2,
+        360 - _a2,
         maxLength);
     _points[5] = get_interpolated_point_from_2_points(
         _points[1], Offset1, smallerLengthFactor);
@@ -136,7 +140,7 @@ class _ConicCurvePageState extends State<ConicCurvePage> {
     List<Offset> l1points = [];
     bisectorPoint = getPointOnLineFor_X(l3, -200);
     bisectorPoint = Offset(bisectorPoint.dx * (-1), bisectorPoint.dy * (-1));
-    d.log("bisect $bisectorPoint");
+    //  d.log("bisect $bisectorPoint");
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -154,7 +158,7 @@ class _ConicCurvePageState extends State<ConicCurvePage> {
                   right: 0,
                   top: 80,
                   child: Text(
-                    "a1 : ${a1.toStringAsFixed(2)} / a2 : ${a2.toStringAsFixed(2)}  / diff : ${diff.toStringAsFixed(2)} / angdiff : ${angDiff.toStringAsFixed(2)}\n Angle ${360 - angleFactorFrom_a1 * (360)} ",
+                    "_a1 : ${_a1.toStringAsFixed(2)} / _a2 : ${_a2.toStringAsFixed(2)}  / diff : ${diff.toStringAsFixed(2)} / angdiff : ${angDiff.toStringAsFixed(2)}\n Angle ${360 - angleFactorFrom_a1 * (360)} ",
                     style: TextStyle(fontSize: 20, color: Colors.white),
                   )),
               Positioned(
@@ -216,29 +220,16 @@ class _ConicCurvePageState extends State<ConicCurvePage> {
   }
 }
 
+bool isClockwise = true;
+
 class _ConicPainter extends CustomPainter {
   @override
-  void paint(Canvas canvas, Size size) {
+  void paint(Canvas canvas, Size s) {
     Paint paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
       ..color = Colors.red;
     Path path = Path();
-
-//     path.moveTo(_points.first.dx, _points.first.dy);
-//     path.cubicTo(_points[1].dx, _points[1].dy, _points[2].dx, _points[2].dy,
-//         _points[3].dx, _points[3].dy);
-// //
-//     path.moveTo(_points[4].dx, _points[4].dy);
-//     path.arcToPoint(_points[5], radius: Radius.circular(30));
-
-//     path.moveTo(_points[6].dx, _points[6].dy);
-//     path.conicTo(_points[7].dx, _points[7].dy, _points[8].dx, _points[8].dy, 1);
-//     //
-//     double degToRad(num deg) => deg * (pi / 180.0);
-    // path.addRRect(
-    //     RRect.fromRectAndRadius(Rect.fromPoints(_points[9], _points[10]), Radius.circular(60)));
-    // path.addArc(Rect.fromLTWH(100,100, 800, 400), degToRad(0), degToRad(270));
 
 // Draw first line from 0 to 1 and 1 to 2 and 1 to newPoint
 
@@ -250,12 +241,29 @@ class _ConicPainter extends CustomPainter {
     bisectpath.moveTo(_points[1].dx, _points[1].dy);
     bisectpath.lineTo(_points[4].dx, _points[4].dy);
     Path arcPath = Path();
-    arcPath.moveTo(_points[5].dx, _points[5].dy);
-    arcPath.arcToPoint(_points[6], radius: Radius.circular(_arcradius), clockwise: false);
+    // arcPath.moveTo(_points[5].dx, _points[5].dy);
+
+    // arcPath.arcToPoint(_points[6],
+    //     radius: Radius.circular(_arcradius), clockwise: isClockwise);
+
+
+  Arc3PointModel arc3pointModel = getArcModel([
+   ..._points.sublist(0,3)
+  ], smallerLengthFactor);
+
+  arcPath.moveTo(arc3pointModel.startPoint.dx, arc3pointModel.startPoint.dy);
+  arcPath.arcToPoint(arc3pointModel.endPoint,
+      radius: Radius.circular(
+        50
+        // _arcradius
+        // arc3pointModel.radius
+        
+        ),
+      clockwise: arc3pointModel.isClockwise);
 
     canvas.drawPath(arcPath, paint..color = Colors.green.shade300);
     canvas.drawPath(path, paint);
-    canvas.drawPath(bisectpath, paint..color = Colors.blue.shade200);
+    // canvas.drawPath(bisectpath, paint..color = Colors.blue.shade200);
   }
 
   @override

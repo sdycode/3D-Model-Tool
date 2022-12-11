@@ -8,8 +8,7 @@ get_point_from_origin_at_angle_with_radius(
     Offset origin, double angleInDeg, double rad) {
   double x = rad * cos(angleInDeg.degToRad()).threshold();
   double y = rad * sin(angleInDeg.degToRad());
-  d.log(
-      "point angdiff  @ $angleInDeg /  $x /$y / ${cos(angleInDeg.degToRad())}");
+  // d.log(      "point angdiff  @ $angleInDeg /  $x /$y / ${cos(angleInDeg.degToRad())}");
   return Offset(origin.dx + x, origin.dy - y);
 }
 

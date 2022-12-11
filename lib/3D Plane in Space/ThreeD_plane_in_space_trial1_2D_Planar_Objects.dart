@@ -20,6 +20,7 @@ import 'package:three_d_model_tool/math/get_line_perp_to_plane.dart';
 import 'package:three_d_model_tool/math/get_squre_root_value_of_any_vector.dart';
 import 'package:three_d_model_tool/math/model/plane_equation_model.dart';
 import 'package:three_d_model_tool/math/planeInterSectionPerpendilarDistanceForVector.dart';
+import 'package:three_d_model_tool/widgets/buttons/roundtextbutton.dart';
 import 'dart:math' as m;
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:three_d_model_tool/math/get_angles_and_translated_value_for_trianlge_points.dart';
@@ -73,16 +74,18 @@ List<PlanePositionModel> planePositionModels = [
   //     [-37.50, -147.00, 0.00], [-444.00, 278.00, 0.00]),
 ];
 
-class ThreeD_plane_in_space_trial1_Sphere extends StatefulWidget {
-  ThreeD_plane_in_space_trial1_Sphere({Key? key}) : super(key: key);
+class ThreeD_plane_in_space_trial1_2D_Planar_Objects extends StatefulWidget {
+  ThreeD_plane_in_space_trial1_2D_Planar_Objects({Key? key}) : super(key: key);
 
   @override
-  State<ThreeD_plane_in_space_trial1_Sphere> createState() =>
+  State<ThreeD_plane_in_space_trial1_2D_Planar_Objects> createState() =>
       _ThreeD_plane_in_space_trial1State();
 }
 
+bool _showBoard = false;
+
 class _ThreeD_plane_in_space_trial1State
-    extends State<ThreeD_plane_in_space_trial1_Sphere> {
+    extends State<ThreeD_plane_in_space_trial1_2D_Planar_Objects> {
   ScrollController xyzchartScrollController =
       ScrollController(initialScrollOffset: -200);
   int selecteSpacePointIndex = 0;
@@ -118,201 +121,248 @@ class _ThreeD_plane_in_space_trial1State
     return Scaffold(
         // backgroundColor: Colors.black,
         body: Container(
-      width: w,
-      height: h,
-      color: Color.fromARGB(245, 8, 5, 3),
-      child: Stack(
-        // fit: StackFit.expand,
-        children: [
-          Positioned(
-              child: Transform(
-            origin: Offset(w * 0.5, h * 0.5),
-            transform: Matrix4.identity()
-              ..scale(mainScale, mainScale, mainScale),
-            //  Matrix4.rotationZ(1*180.0.degToRad())..rotateY(1*180.0.degToRad())..rotateX(1*360.0.degToRad()),
-            child: Transform(
-              origin: Offset(w * 0.5, h * 0.5),
-              transform: Matrix4.rotationX(spaceRotAngles[0].degToRad())
-                ..rotateY(spaceRotAngles[1].degToRad())
-                ..rotateZ(spaceRotAngles[2].degToRad())
-                ..translate(spaceTranslateValues[0], spaceTranslateValues[1],
-                    spaceTranslateValues[2]),
-              child: Stack(children: [
-                ...List.generate(planePositionModels.length, (i) {
-                  return plane(i);
-                }),
-                Positioned(
-                    child: Transform(
-                  transform: Matrix4.rotationX(0)
-                    ..translate(
-                        planePositionModels[3].translateValuesWRTSpace[0] +
-                            planeSize * 0.5,
-                        planePositionModels[3].translateValuesWRTSpace[1] +
-                            planeSize * 0.5,
-                        planePositionModels[3].translateValuesWRTSpace[2]),
-                  child: CircleAvatar(
-                    backgroundColor: Colors.purple.shade600,
-                    radius: 4,
-                  ),
-                )),
-                ...List.generate(spacePointsList.length, (i) {
-                  return Positioned(
-                      child: spacePoint(
-                          spacePointsList[i],
-                          i == 3
-                              ? Colors.green
-                              : selecteSpacePointIndex == i
-                                  ? Colors.red
-                                  : Colors.white));
-                }),
-                // ...List.generate(spacePointsList.length, (i) {
-                //   return i < 4
-                //       ? Container()
-                //       : Positioned(
-                //           child: planeFromCentroidPoint(spacePointsList[i],
-                //               planeRectSize: Size(300, 100)));
-                // }),
-                // SphereUsingcircularRingsRotatedwrtXZPlane(  noOfPolygonSides: noOfPolygonSides,
-                //   polygonRadius: polygonRadius,),
-                // CircleRing3DModelWidgetAtAnglewrtXZPlane(
-                //   noOfPolygonSides: noOfPolygonSides,
-                //   polygonRadius: polygonRadius,
-                //   xzAngle: 45,
-                // ),
-                CircleRing3DModelWidgetAtAnglewrtXZPlane(
-                    noOfPolygonSides: noOfPolygonSides,
-                    polygonRadius: polygonRadius,
-                    ringThickness: ringThickness
-
-                    //  polygonRadius / (1 + m.sqrt(2)),
+            width: w,
+            height: h,
+            color: Color.fromARGB(245, 8, 5, 3),
+            child: Column(
+              children: [
+                Container(
+                  width: w,
+                  height: 36,
+                  color: Colors.amber.shade100,
+                  child: SingleChildScrollView(
+                    child: Row(
+                      children: [
+                        RoundTextButton(
+                            text: "DrawBoard",
+                            onTap: () {
+                              _showBoard = !_showBoard;
+                              setState(() {});
+                            })
+                      ],
                     ),
-
-                // CircleRing3DModelWidget(
-                //   noOfPolygonSides: noOfPolygonSides,
-                //   polygonRadius: polygonRadius,
-                //   ringThickness: polygonRadius / (1 + m.sqrt(2)),
-                //   // color: Colors.amber,
-                // )
-                // Positioned(child: axisLine(axisAngles)),
-                // Positioned(child: axisPerpPlane(axisAngles)),
-                // Positioned(
-                //     child: axisLine(lineAngles.vect3TodoubleList(),
-                //         color: Colors.green.shade300))
-              ]),
-            ),
-          )),
-          Positioned(
-            left: 400,
-            top: 50,
-            child: Builder(builder: (c) {
-              double phi = m.asin(m.sin(lineAngles[2].degToRad()) /
-                  (m.sin(lineAngles[1].degToRad())));
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SelectableText("${90 - phi.radToDeg()}",
-                      style: const TextStyle(color: Colors.white)),
-                  SelectableText(
-                      " XZ [ Z axis ]${getAngleofVector_wrt_XZ_Plane(spacePointsList.first)}\n XY [ Y axis ]${getAngleofVector_wrt_XY_Plane(spacePointsList.first)}",
-                      style: const TextStyle(color: Colors.white))
-                ],
-              );
-            }),
-          ),
-
-          // plane(0),
-          // plane(1),
-
-          xyzValuesChart(),
-          axisSliderBox(),
-          Align(
-              alignment: Alignment.bottomCenter,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
+                  ),
+                ),
+                Container(
+                  width: w,
+                  height: h - 36,
+                  child: Stack(
+                    // fit: StackFit.expand,
                     children: [
-                      Text(
-                          "space tra ${translateValuesWRTSpace}\n ${planePositionModels[3].translateValuesWRTSpace}, ",
-                          style: const TextStyle(color: Colors.white)),
-                      Container(
-                        height: 60,
-                        width: 300,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text(" Intersect point: ",
-                                style: TextStyle(color: Colors.white)),
-                            SelectableText(
-                                "${spacePointsList[3].x.roundTo3Places()}, ${spacePointsList[3].y.roundTo3Places()}, ${spacePointsList[3].z.roundTo3Places()},",
-                                style: const TextStyle(color: Colors.white)),
-                          ],
+                      Positioned(
+                          child: Transform(
+                        origin: Offset(w * 0.5, h * 0.5),
+                        transform: Matrix4.identity()
+                          ..scale(mainScale, mainScale, mainScale),
+                        //  Matrix4.rotationZ(1*180.0.degToRad())..rotateY(1*180.0.degToRad())..rotateX(1*360.0.degToRad()),
+                        child: Transform(
+                          origin: Offset(w * 0.5, h * 0.5),
+                          transform:
+                              Matrix4.rotationX(spaceRotAngles[0].degToRad())
+                                ..rotateY(spaceRotAngles[1].degToRad())
+                                ..rotateZ(spaceRotAngles[2].degToRad())
+                                ..translate(
+                                    spaceTranslateValues[0],
+                                    spaceTranslateValues[1],
+                                    spaceTranslateValues[2]),
+                          child: Stack(children: [
+                            ...List.generate(planePositionModels.length, (i) {
+                              return plane(i);
+                            }),
+                            Positioned(
+                                child: Transform(
+                              transform: Matrix4.rotationX(0)
+                                ..translate(
+                                    planePositionModels[3]
+                                            .translateValuesWRTSpace[0] +
+                                        planeSize * 0.5,
+                                    planePositionModels[3]
+                                            .translateValuesWRTSpace[1] +
+                                        planeSize * 0.5,
+                                    planePositionModels[3]
+                                        .translateValuesWRTSpace[2]),
+                              child: CircleAvatar(
+                                backgroundColor: Colors.purple.shade600,
+                                radius: 4,
+                              ),
+                            )),
+                            ...List.generate(spacePointsList.length, (i) {
+                              return Positioned(
+                                  child: spacePoint(
+                                      spacePointsList[i],
+                                      i == 3
+                                          ? Colors.green
+                                          : selecteSpacePointIndex == i
+                                              ? Colors.red
+                                              : Colors.white));
+                            }),
+                            // ...List.generate(spacePointsList.length, (i) {
+                            //   return i < 4
+                            //       ? Container()
+                            //       : Positioned(
+                            //           child: planeFromCentroidPoint(spacePointsList[i],
+                            //               planeRectSize: Size(300, 100)));
+                            // }),
+                            // SphereUsingcircularRingsRotatedwrtXZPlane(  noOfPolygonSides: noOfPolygonSides,
+                            //   polygonRadius: polygonRadius,),
+                            // CircleRing3DModelWidgetAtAnglewrtXZPlane(
+                            //   noOfPolygonSides: noOfPolygonSides,
+                            //   polygonRadius: polygonRadius,
+                            //   xzAngle: 45,
+                            // ),
+                            CircleRing3DModelWidgetAtAnglewrtXZPlane(
+                                noOfPolygonSides: noOfPolygonSides,
+                                polygonRadius: polygonRadius,
+                                ringThickness: ringThickness
+
+                                //  polygonRadius / (1 + m.sqrt(2)),
+                                ),
+
+                            // CircleRing3DModelWidget(
+                            //   noOfPolygonSides: noOfPolygonSides,
+                            //   polygonRadius: polygonRadius,
+                            //   ringThickness: polygonRadius / (1 + m.sqrt(2)),
+                            //   // color: Colors.amber,
+                            // )
+                            // Positioned(child: axisLine(axisAngles)),
+                            // Positioned(child: axisPerpPlane(axisAngles)),
+                            // Positioned(
+                            //     child: axisLine(lineAngles.vect3TodoubleList(),
+                            //         color: Colors.green.shade300))
+                          ]),
                         ),
+                      )),
+                      Positioned(
+                        left: 400,
+                        top: 50,
+                        child: Builder(builder: (c) {
+                          double phi = m.asin(m.sin(lineAngles[2].degToRad()) /
+                              (m.sin(lineAngles[1].degToRad())));
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SelectableText("${90 - phi.radToDeg()}",
+                                  style: const TextStyle(color: Colors.white)),
+                              SelectableText(
+                                  " XZ [ Z axis ]${getAngleofVector_wrt_XZ_Plane(spacePointsList.first)}\n XY [ Y axis ]${getAngleofVector_wrt_XY_Plane(spacePointsList.first)}",
+                                  style: const TextStyle(color: Colors.white))
+                            ],
+                          );
+                        }),
                       ),
+
+                      // plane(0),
+                      // plane(1),
+
+                      xyzValuesChart(),
+                      axisSliderBox(),
+                      Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                      "space tra ${translateValuesWRTSpace}\n ${planePositionModels[3].translateValuesWRTSpace}, ",
+                                      style:
+                                          const TextStyle(color: Colors.white)),
+                                  Container(
+                                    height: 60,
+                                    width: 300,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text(" Intersect point: ",
+                                            style:
+                                                TextStyle(color: Colors.white)),
+                                        SelectableText(
+                                            "${spacePointsList[3].x.roundTo3Places()}, ${spacePointsList[3].y.roundTo3Places()}, ${spacePointsList[3].z.roundTo3Places()},",
+                                            style: const TextStyle(
+                                                color: Colors.white)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Container(
+                                    height: 60,
+                                    width: 300,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              rotAngles = List.from([
+                                                lineAngles.x.roundTo3Places(),
+                                                lineAngles.y.roundTo3Places(),
+                                                lineAngles.z.roundTo3Places()
+                                              ]);
+                                            });
+                                          },
+                                          child: const Text(
+                                              "lineAngles values: ",
+                                              style: TextStyle(
+                                                  color: Colors.white)),
+                                        ),
+                                        SelectableText(
+                                            "${lineAngles.x.roundTo3Places()}, ${lineAngles.y.roundTo3Places()}, ${lineAngles.z.roundTo3Places()},",
+                                            style: const TextStyle(
+                                                color: Colors.white)),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    height: 60,
+                                    width: 300,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              rotAngles = List.from([
+                                                90 -
+                                                    lineAngles.x
+                                                        .roundTo3Places(),
+                                                90 -
+                                                    lineAngles.y
+                                                        .roundTo3Places(),
+                                                90 -
+                                                    lineAngles.z
+                                                        .roundTo3Places()
+                                              ]);
+                                            });
+                                          },
+                                          child: const Text(
+                                              "lineAngles values: ",
+                                              style: TextStyle(
+                                                  color: Colors.white)),
+                                        ),
+                                        SelectableText(
+                                            "${90 - lineAngles.x.roundTo3Places()}, ${90 - lineAngles.y.roundTo3Places()}, ${90 - lineAngles.z.roundTo3Places()},",
+                                            style: const TextStyle(
+                                                color: Colors.white)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              )
+                            ],
+                          )),
+                      // spaceTransform
+                      //     ? spaceSlidersForManipulation()
+                      //     : slidersForManipulation()
+
+                      if (_showBoard) _DrawingBoardToCreatePlanarObjects()
                     ],
                   ),
-                  Row(
-                    children: [
-                      Container(
-                        height: 60,
-                        width: 300,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  rotAngles = List.from([
-                                    lineAngles.x.roundTo3Places(),
-                                    lineAngles.y.roundTo3Places(),
-                                    lineAngles.z.roundTo3Places()
-                                  ]);
-                                });
-                              },
-                              child: const Text("lineAngles values: ",
-                                  style: TextStyle(color: Colors.white)),
-                            ),
-                            SelectableText(
-                                "${lineAngles.x.roundTo3Places()}, ${lineAngles.y.roundTo3Places()}, ${lineAngles.z.roundTo3Places()},",
-                                style: const TextStyle(color: Colors.white)),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        height: 60,
-                        width: 300,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  rotAngles = List.from([
-                                    90 - lineAngles.x.roundTo3Places(),
-                                    90 - lineAngles.y.roundTo3Places(),
-                                    90 - lineAngles.z.roundTo3Places()
-                                  ]);
-                                });
-                              },
-                              child: const Text("lineAngles values: ",
-                                  style: TextStyle(color: Colors.white)),
-                            ),
-                            SelectableText(
-                                "${90 - lineAngles.x.roundTo3Places()}, ${90 - lineAngles.y.roundTo3Places()}, ${90 - lineAngles.z.roundTo3Places()},",
-                                style: const TextStyle(color: Colors.white)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                ],
-              )),
-          // spaceTransform
-          //     ? spaceSlidersForManipulation()
-          //     : slidersForManipulation()
-        ],
-      ),
-    ));
+                ),
+              ],
+            )));
   }
 
   xyzValuesChart() {
@@ -1259,9 +1309,10 @@ class _ThreeD_plane_in_space_trial1State
                                     noOfRingsAboveXZPlane = v.toInt();
                                     double angle = (m.pi * 0.5) /
                                         (noOfRingsAboveXZPlane + 1);
-                                   
+
                                     ringThickness =
-                                        2 * polygonRadius * m.tan(angle*0.5); log("stepAngle anglee ${(angle*0.5).radToDeg()} / ring ${ringThickness}");
+                                        2 * polygonRadius * m.tan(angle * 0.5);
+                                    log("stepAngle anglee ${(angle * 0.5).radToDeg()} / ring ${ringThickness}");
                                   }
                                 });
                               }),
@@ -1289,13 +1340,13 @@ class _ThreeD_plane_in_space_trial1State
                                 setState(() {
                                   polygonRadius = v;
 
-                                    // noOfRingsAboveXZPlane = v.toInt();
-                                    double angle = (m.pi * 0.5) /
-                                        (noOfRingsAboveXZPlane + 1);
-                                   
-                                    ringThickness =
-                                        2 * polygonRadius * m.tan(angle*0.5); log("stepAngle anglee ${(angle*0.5).radToDeg()} / ring ${ringThickness}");
-                               
+                                  // noOfRingsAboveXZPlane = v.toInt();
+                                  double angle = (m.pi * 0.5) /
+                                      (noOfRingsAboveXZPlane + 1);
+
+                                  ringThickness =
+                                      2 * polygonRadius * m.tan(angle * 0.5);
+                                  log("stepAngle anglee ${(angle * 0.5).radToDeg()} / ring ${ringThickness}");
                                 });
                               }),
                         )
@@ -2025,5 +2076,125 @@ class IconWithText extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _DrawingBoardToCreatePlanarObjects extends StatefulWidget {
+  _DrawingBoardToCreatePlanarObjects({Key? key}) : super(key: key);
+
+  @override
+  State<_DrawingBoardToCreatePlanarObjects> createState() =>
+      __DrawingBoardToCreatePlanarObjectsState();
+}
+
+class __DrawingBoardToCreatePlanarObjectsState
+    extends State<_DrawingBoardToCreatePlanarObjects> {
+  TextEditingController wController =
+      TextEditingController(text: 100.toString());
+  TextEditingController hController =
+      TextEditingController(text: 100.toString());
+  double ww = 100;
+  double hh = 100;
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: (w - 600) * 0.5,
+      top: 40,
+      child: Container(
+        width: 600,
+        height: 600 + 30,
+        color: Color.fromARGB(255, 228, 220, 198),
+        child: Column(
+          children: [
+            Container(
+              width: 600,
+              height: 30,
+              color: Colors.orange.shade400,
+              child: Row(
+                children: [
+                  Text("Size : 600 | "),
+                  Text("W "),
+                  Container(
+                    width: 40,
+                    height: 30,
+                    child: TextField(
+                        onSubmitted: (d) {
+                          saveCalled();
+                        },
+                      decoration: InputDecoration(
+                          // contentPadding: EdgeInsets.zero
+                          ),
+                      controller: wController,
+                    ),
+                  ),
+                  Text(" %  "),
+                  Text("H "),
+                  Container(
+                    width: 40,
+                    height: 30,
+                    child: Center(
+                      child: TextField(
+                        onSubmitted: (d) {
+                          saveCalled();
+                        },
+                        decoration: InputDecoration(
+                            // contentPadding: EdgeInsets.all(10)
+                            ),
+                        controller: hController,
+                      ),
+                    ),
+                  ),
+                  Text(" %  "),
+                  Padding(
+                    padding: EdgeInsets.all(4),
+                    child: RoundTextButton(
+                      text: "  Save  ",
+                      onTap: () {
+                        saveCalled();
+                      },
+                    ),
+                  ),
+                  Text(" W x H : ${600 * (ww / 100)} x ${600 * (hh / 100)} "),
+                ],
+              ),
+            ),
+            Spacer(),
+            Center(
+              child: Container(
+                decoration: BoxDecoration(
+                    color: Colors.green.shade100, border: Border.all()),
+                width: 600 * (ww / 100),
+                height: 600 * (hh / 100),
+              ),
+            ),
+            Spacer()
+          ],
+        ),
+      ),
+    );
+  }
+
+  saveCalled() {
+    double dw = double.tryParse(wController.text.trim().toString()) ?? 100.0;
+    if (dw != null) {
+      if (dw < 0) {
+        dw = 100;
+      }
+      if (dw > 100) {
+        dw = 100;
+      }
+      ww = dw;
+    }
+    double dh = double.tryParse(hController.text.trim().toString()) ?? 100.0;
+    if (dh != null) {
+      if (dh < 0) {
+        dh = 100;
+      }
+      if (dh > 100) {
+        dh = 100;
+      }
+      hh = dh;
+    }
+    setState(() {});
   }
 }
